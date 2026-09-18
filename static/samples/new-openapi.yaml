@@ -1,0 +1,152 @@
+openapi: "3.1.0"
+info:
+  title: Petstore API
+  version: 2.0.0
+  description: 待发布新版本（示例，包含多种破坏性变更）
+servers:
+  - url: https://api.example.com/v2
+paths:
+  /pets:
+    get:
+      operationId: listPetsV2
+      summary: 宠物列表
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            maximum: 50
+        - name: X-Request-Id
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: X-Tenant
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 宠物列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Pet"
+    post:
+      operationId: createPet
+      summary: 创建宠物
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PetCreate"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/PetCreate"
+      responses:
+        "201":
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+        "400":
+          description: 参数错误
+  /pets/{petId}:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+    get:
+      operationId: getPet
+      summary: 宠物详情
+      responses:
+        "200":
+          description: 宠物详情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+  /users:
+    get:
+      operationId: listUsers
+      summary: 用户列表（全新接口）
+      responses:
+        "200":
+          description: 用户列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Owner"
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Pet:
+      type: object
+      required: [id, name, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [available, pending, sold, archived]
+        tags:
+          type: string
+        owner:
+          $ref: "#/components/schemas/Owner"
+    PetCreate:
+      type: object
+      required: [name, categoryId]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 3
+        status:
+          type: string
+          enum: [available, sold]
+        categoryId:
+          type: integer
+    Category:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        parentPet:
+          $ref: "#/components/schemas/Pet"
+    Owner:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        pets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pet"

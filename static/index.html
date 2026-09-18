@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenAPI 版本兼容性审查</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">🔌</span>
+    <div>
+      <h1>OpenAPI 版本兼容性审查</h1>
+      <p class="subtitle">比对 OpenAPI 3.x JSON / YAML，递归解析 $ref（含循环引用），定位破坏性变更</p>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="review">审查</button>
+    <button class="tab" data-tab="history">历史记录</button>
+    <button class="tab" data-tab="rules">规则说明</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ================= 审查输入 ================= -->
+  <section id="tab-review" class="tab-panel active">
+    <div class="input-grid">
+      <div class="input-card">
+        <div class="input-card-head">
+          <h2>① 旧版本（当前线上）</h2>
+          <div class="input-actions">
+            <label class="file-btn">上传<input type="file" id="old-file" accept=".json,.yaml,.yml"></label>
+            <button class="ghost-btn" id="old-sample">加载示例</button>
+            <button class="ghost-btn" data-clear="old-spec">清空</button>
+          </div>
+        </div>
+        <textarea id="old-spec" spellcheck="false"
+          placeholder='粘贴 OpenAPI JSON 或 YAML，例如：&#10;openapi: "3.0.3"&#10;info:&#10;  title: Petstore&#10;  version: 1.0.0&#10;paths: {}'></textarea>
+      </div>
+      <div class="input-card">
+        <div class="input-card-head">
+          <h2>② 新版本（待发布）</h2>
+          <div class="input-actions">
+            <label class="file-btn">上传<input type="file" id="new-file" accept=".json,.yaml,.yml"></label>
+            <button class="ghost-btn" id="new-sample">加载示例</button>
+            <button class="ghost-btn" data-clear="new-spec">清空</button>
+          </div>
+        </div>
+        <textarea id="new-spec" spellcheck="false" placeholder="粘贴新版本 OpenAPI JSON 或 YAML"></textarea>
+      </div>
+    </div>
+    <div class="run-bar">
+      <button id="run-btn" class="primary-btn">▶ 开始兼容性审查</button>
+      <span id="input-error" class="error-text"></span>
+    </div>
+    <div id="result-area" class="hidden">
+      <div class="result-head">
+        <h2>③ 审查结果</h2>
+        <div id="report-links" class="report-links"></div>
+      </div>
+      <div id="summary-cards" class="cards"></div>
+      <div class="filter-bar">
+        <input type="search" id="filter-text" placeholder="筛选：接口路径 / 规则 / 原因 / 字段名…">
+        <select id="filter-severity">
+          <option value="">全部级别</option>
+          <option value="breaking">破坏性变更</option>
+          <option value="warning">潜在风险</option>
+          <option value="non-breaking">无破坏/新增</option>
+        </select>
+        <select id="filter-location">
+          <option value="">全部方向</option>
+          <option value="request">请求</option>
+          <option value="response">响应</option>
+        </select>
+        <select id="filter-category">
+          <option value="">全部分类</option>
+        </select>
+        <span id="filter-count" class="filter-count"></span>
+      </div>
+      <div id="findings"></div>
+    </div>
+  </section>
+
+  <!-- ================= 历史 ================= -->
+  <section id="tab-history" class="tab-panel">
+    <h2>历史审查记录</h2>
+    <div id="history-list" class="history-list"></div>
+  </section>
+
+  <!-- ================= 规则 ================= -->
+  <section id="tab-rules" class="tab-panel">
+    <h2>语义规则说明</h2>
+    <p class="muted">规则按请求方向（调用方 → 服务端）与响应方向（服务端 → 调用方）分别判定破坏性。</p>
+    <div id="rules-list"></div>
+  </section>
+</main>
+
+<!-- ================= 引用树弹窗 ================= -->
+<div id="tree-modal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>$ref 引用展开树</h3>
+      <div>
+        <div class="seg-toggle">
+          <button data-side="old" class="active">旧版本</button>
+          <button data-side="new">新版本</button>
+        </div>
+        <button id="tree-close" class="ghost-btn">关闭</button>
+      </div>
+    </div>
+    <p id="tree-pointer" class="tree-pointer"></p>
+    <div id="tree-body" class="tree-body"></div>
+  </div>
+</div>
+
+<footer class="footer">支持 OpenAPI 3.0 / 3.1 · JSON &amp; YAML · 循环 $ref 安全解析 · 报告可下载</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
